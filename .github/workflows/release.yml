@@ -1,6 +1,6 @@
 name: Release
 
-# 推送 v* 标签时自动构建 VSIX 并发布到 GitHub Release
+# 推送 v* 标签时自动：发布到 Marketplace + 构建 VSIX + 上传到 GitHub Release
 on:
   push:
     tags:
@@ -27,12 +27,17 @@ jobs:
       - name: Compile
         run: npm run compile
 
-      - name: Package VSIX
+      - name: Publish to VSCode Marketplace
         run: |
           npm install -g @vscode/vsce
-          vsce package
+          vsce publish --pat ${{ secrets.VSCE_PAT }}
 
-      - name: Upload to Release
+      - name: Package VSIX
+        if: always()
+        run: vsce package
+
+      - name: Upload to GitHub Release
+        if: always()
         uses: softprops/action-gh-release@v2
         with:
           files: '*.vsix'
