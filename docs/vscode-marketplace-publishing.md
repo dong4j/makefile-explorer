@@ -43,7 +43,7 @@ VSCode Marketplace 使用 Azure DevOps 管理发布者身份。
 
 PAT 用于 `vsce` 命令行工具的身份认证。
 
-1. 打开 [Azure DevOps PAT 页面](https://dev.azure.com/dong4j/_usersSettings/tokens)
+1. 打开 [Azure DevOps PAT 页面](https://dev.azure.com/dong4j/_usersSettings/tokens). (必须先创建组织)
 2. 点击 **"New Token"**
 3. 配置：
    - **Name**：`vscode-marketplace`
