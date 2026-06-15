@@ -3,10 +3,11 @@
 [![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/dong4j/makefile-explorer)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![VSCode](https://img.shields.io/badge/vscode-%5E1.85.0-007ACC)](https://code.visualstudio.com/)
+[![中文文档](https://img.shields.io/badge/文档-中文-red)](readme-cn.md)
 
 **Browse and run Makefile targets in a tree view** — like NPM Scripts, but for Make. No more scrolling through massive Makefiles hunting for the right target.
 
-<!-- ![screenshot](media/screenshot.png) -->
+![20260615201224_q7Bokpeb](./banner.webp)
 
 ## Why?
 
