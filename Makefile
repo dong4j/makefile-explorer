@@ -46,8 +46,10 @@ release: compile ## 发布新版本（⚠️ 先更新 CHANGELOG.md，再修改 
 	@read _
 	@echo "==> 更新 package.json 版本号为 $(VERSION)..."
 	@node -e "var p=require('./package.json');p.version='$(VERSION)';require('fs').writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n')"
+	@echo "==> 更新 README 版本徽章为 $(VERSION)..."
+	@sed -i '' 's|version-[0-9]\.[0-9]\.[0-9]*-blue|version-$(VERSION)-blue|g' README.md README-ZH.md
 	@echo "==> 提交版本更新..."
-	git add Makefile package.json CHANGELOG.md
+	git add Makefile package.json CHANGELOG.md README.md README-ZH.md
 	git commit -m "chore: bump to v$(VERSION)"
 	@echo "==> 推送 main 分支..."
 	git push origin main
