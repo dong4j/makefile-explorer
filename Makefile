@@ -48,9 +48,19 @@ release: compile ## 发布新版本（⚠️ 先更新 CHANGELOG.md，再修改 
 	@node -e "var p=require('./package.json');p.version='$(VERSION)';require('fs').writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n')"
 	@echo "==> 更新 README 版本徽章为 $(VERSION)..."
 	@sed -i '' 's|version-[0-9]\.[0-9]\.[0-9]*-blue|version-$(VERSION)-blue|g' README.md README-ZH.md
-	@echo "==> 提交版本更新..."
+	@echo "==> 暂存版本文件..."
 	git add Makefile package.json CHANGELOG.md README.md README-ZH.md
-	git commit -m "chore: bump to v$(VERSION)"
+	@if git diff --cached --quiet; then \
+		echo "     (无待提交内容，跳过 commit)"; \
+	else \
+		echo "==> 提交版本更新..."; \
+		git commit -m "chore: bump to v$(VERSION)"; \
+	fi
+	@CURRENT_BRANCH=$$(git branch --show-current); \
+	if [ "$$CURRENT_BRANCH" != "main" ]; then \
+		echo "⚠️  当前在 $$CURRENT_BRANCH 分支，release 将推送 main。Ctrl-C 取消，回车继续..."; \
+		read _; \
+	fi
 	@echo "==> 推送 main 分支..."
 	git push origin main
 	@echo "==> 创建 tag v$(VERSION) 并推送..."
