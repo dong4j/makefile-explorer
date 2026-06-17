@@ -5,6 +5,19 @@ All notable changes to the "vscode-makefile-explorer" extension will be document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.0] - 2026-06-17
+
+### Changed
+
+- **Task API execution** — double-click now runs targets via `vscode.tasks.executeTask` instead of raw terminal `sendText`
+- **Dedicated terminal per execution** — each double-click creates a fresh `Make - <target>` terminal instead of reusing a single "Make" terminal, preventing commands from being typed into a busy terminal's stdin
+
+### Fixed
+
+- Register `makefile-explorer` `TaskProvider` and `taskDefinitions` so custom task type no longer logs「不存在已注册的任务类型」
+
 ## [0.3.0] - 2026-06-16
 
 ### Changed

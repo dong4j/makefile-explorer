@@ -8,7 +8,7 @@
  * 3. 启动文件监听，Makefile 变化时自动刷新树
  *
  * 交互设计：
- * - 双击 target 节点 → 在终端执行 make <target>（防误触）
+ * - 双击 target 节点 → 通过 Task API 执行 make <target>（输出在「终端」任务面板）
  * - 单击 target 右侧图标 → 跳转到 Makefile 定义行
  * - 右键 → "Go to Definition" → 同上
  * - 单击 Makefile 文件节点 → 在编辑器中打开 Makefile
@@ -21,11 +21,8 @@
  */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { MakefileTreeProvider } from './MakefileTreeProvider';
-
-/** 用于查找或创建 Make 专用终端 */
-const MAKE_TERMINAL_NAME = 'Make';
+import { createMakeTask, registerMakefileTaskProvider } from './MakefileTaskProvider';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -73,23 +70,23 @@ export function activate(context: vscode.ExtensionContext): void {
   // ---- 共享执行逻辑 ----
 
   /**
-   * 在终端中执行 make target（不经过双击检测）
+   * 通过 VS Code Task API 执行 make target
+   *
+   * 使用自定义类型 makefile-explorer，需已注册 TaskProvider（见 MakefileTaskProvider.ts）
    */
-  function executeTarget(targetName: string, filePath: string): void {
-    const makefileDir = path.dirname(filePath);
-    const fileName = path.basename(filePath);
-    const command = `cd "${makefileDir}" && make -f ${fileName} ${targetName}`;
-
-    let terminal = vscode.window.terminals.find(t => t.name === MAKE_TERMINAL_NAME);
-    if (!terminal) {
-      terminal = vscode.window.createTerminal(MAKE_TERMINAL_NAME);
+  async function executeTarget(targetName: string, filePath: string): Promise<void> {
+    const task = createMakeTask(targetName, filePath);
+    try {
+      await vscode.tasks.executeTask(task);
+      console.log(`[Makefile Explorer] 执行任务: Make: ${targetName} (${filePath})`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`执行 Make target 失败: ${message}`);
     }
-
-    terminal.show();
-    terminal.sendText(command);
-
-    console.log(`[Makefile Explorer] 执行: ${command}`);
   }
+
+  // ---- 注册 Task Provider（自定义任务类型 makefile-explorer）----
+  context.subscriptions.push(registerMakefileTaskProvider());
 
   // ---- 注册命令 ----
 

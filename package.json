@@ -25,7 +25,8 @@
     "targets"
   ],
   "activationEvents": [
-    "onView:makefileExplorer"
+    "onView:makefileExplorer",
+    "onTaskType:makefile-explorer"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -34,6 +35,7 @@
         {
           "id": "makefileExplorer",
           "name": "Make Targets",
+          "icon": "icon.png",
           "contextualTitle": "Makefile Targets"
         }
       ]
@@ -58,6 +60,25 @@
         "command": "makefile-explorer.refresh",
         "title": "Refresh Makefile Targets",
         "icon": "$(refresh)"
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "makefile-explorer",
+        "required": [
+          "target",
+          "makefilePath"
+        ],
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Makefile target name"
+          },
+          "makefilePath": {
+            "type": "string",
+            "description": "Absolute path to the Makefile"
+          }
+        }
       }
     ],
     "menus": {

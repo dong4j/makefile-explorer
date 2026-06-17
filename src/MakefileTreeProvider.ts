@@ -221,7 +221,7 @@ function createTargetNode(target: Target, filePath: string): MakefileNode {
     target.description ? `描述: ${target.description}` : '',
     `位置: ${filePath}:${target.line + 1}`,
     '',
-    '点击 — 在终端执行',
+    '双击 — 执行任务',
     '右键 → Go to Definition — 跳转到定义'
   ].filter(Boolean).join('\n');
 

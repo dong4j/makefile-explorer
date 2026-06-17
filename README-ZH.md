@@ -13,7 +13,7 @@
 当 Makefile 有 50+ 个 targets 时，在扁平文本文件里找一个目标命令非常痛苦。Makefile Explorer 把每个 Makefile 看作一个可执行命令的文件夹：
 
 - **展开** Makefile 节点 → 所有 targets 一览无余
-- **双击** target → 在终端执行 `make <target>`（防误触）
+- **双击** target → 在独立终端执行 `make <target>`（每次执行创建新终端，避免命令冲突）
 - **点击右侧 📎 图标** → 一键跳转到 Makefile 定义行
 
 专为 monorepo 场景设计：多个 Makefile、嵌套目录、几十个 targets——全部组织在一棵树里。
@@ -21,7 +21,7 @@
 ## 功能
 
 - **🌲 树形视图** —— targets 按 Makefile 分组，展示在资源管理器侧边栏
-- **▶ 双击执行** —— 双击任意 target 在终端运行（防误触）
+- **▶ 双击执行** —— 双击任意 target 在独立终端运行（每次执行创建新终端 `Make - <target>`，不会与正在运行的命令冲突）
 - **🔍 跳转定义** —— 点击右侧 📎 图标或右键 → "Go to Target Definition"，精确跳转到定义行
 - **📝 注释支持** —— 提取 `##` 注释（上方注释和同行注释）作为描述
 - **🔄 自动刷新** —— 监听文件变化，树保持同步
@@ -34,7 +34,7 @@
 1. 打开包含 Makefile 的项目
 2. 点击资源管理器侧边栏的 **"Make Targets"** 视图
 3. 展开 Makefile 节点查看所有 targets
-4. **双击** target → 在终端执行 `make <target>`
+4. **双击** target → 在独立终端执行 `make <target>`（每个 target 在独立终端 `Make - <target>` 中运行）
 5. **点击右侧 📎 图标** 或 **右键** → "Go to Definition" → 跳转到 Makefile 对应行
 
 ### Target 注释
