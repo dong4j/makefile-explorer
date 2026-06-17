@@ -2,7 +2,7 @@
   "name": "makefile-explorer",
   "displayName": "Makefile Explorer",
   "description": "Browse and run Makefile targets in a tree view — double-click to run, click icon to jump to definition",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "dong4j",
   "license": "MIT",
   "repository": {
