@@ -25,7 +25,7 @@
     "targets"
   ],
   "activationEvents": [
-    "onView:makefileExplorer"
+    
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -34,6 +34,7 @@
         {
           "id": "makefileExplorer",
           "name": "Make Targets",
+          "icon": "icon.png",
           "contextualTitle": "Makefile Targets"
         }
       ]

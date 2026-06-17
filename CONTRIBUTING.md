@@ -41,7 +41,7 @@ extension.ts (activate)
   │   ├── calls TargetParser for each file
   │   └── builds MakefileNode tree
   ├── commands:
-  │   ├── runTarget → terminal execution
+  │   ├── runTarget → creates new `Make - <target>` terminal per execution
   │   ├── goToDefinition → opens file, jumps to line
   │   └── refresh → re-scans workspace
   └── file watcher → auto-refresh on changes
