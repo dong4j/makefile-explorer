@@ -21,6 +21,7 @@
  */
 
 import * as vscode from 'vscode';
+import { exec } from 'child_process';
 import { MakefileTreeProvider } from './MakefileTreeProvider';
 import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './MakefileTaskProvider';
 
@@ -54,6 +55,22 @@ function normalizeArgs(args: Record<string, unknown> | undefined): {
  */
 export function activate(context: vscode.ExtensionContext): void {
   console.log('[Makefile Explorer] 插件已激活');
+
+  // ---- make 可用性检测 ----
+  // 激活时检测 make 是否在 PATH 中，不可用则弹提示并记录日志
+  exec('which make', (err) => {
+    if (err) {
+      console.warn('[Makefile Explorer] make 命令未找到，请安装 make 后使用此插件');
+      vscode.window.showWarningMessage(
+        'Makefile Explorer: 未找到 make 命令。请安装 make 后重新加载窗口。',
+        '如何安装'
+      ).then(selection => {
+        if (selection === '如何安装') {
+          vscode.env.openExternal(vscode.Uri.parse('https://www.gnu.org/software/make/'));
+        }
+      });
+    }
+  });
 
   // ---- 创建 TreeDataProvider 并注册 TreeView ----
   const provider = new MakefileTreeProvider();
