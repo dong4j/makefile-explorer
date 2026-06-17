@@ -22,7 +22,7 @@
 
 import * as vscode from 'vscode';
 import { MakefileTreeProvider } from './MakefileTreeProvider';
-import { createMakeTask, registerMakefileTaskProvider } from './MakefileTaskProvider';
+import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './MakefileTaskProvider';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -62,6 +62,43 @@ export function activate(context: vscode.ExtensionContext): void {
     treeDataProvider: provider,
     showCollapseAll: true
   });
+
+  // ---- 状态栏指示器 ----
+  // 在窗口底部状态栏显示当前执行的 make task 状态，方便用户感知运行/完成/失败
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+  statusBarItem.tooltip = '双击 Make Targets 面板中的 target 执行';
+  context.subscriptions.push(statusBarItem);
+
+  // 监听 task 启动事件，在状态栏显示运行中指示
+  context.subscriptions.push(
+    vscode.tasks.onDidStartTask((e) => {
+      const definition = e.execution.task.definition as Record<string, unknown>;
+      if (definition.type !== MAKEFILE_TASK_TYPE) return;
+      const target = definition.target as string;
+      statusBarItem.text = `$(loading~spin) Make: ${target}`;
+      statusBarItem.backgroundColor = undefined;
+      statusBarItem.show();
+    })
+  );
+
+  // 监听 task 结束事件，显示完成状态 3 秒后自动隐藏
+  context.subscriptions.push(
+    vscode.tasks.onDidEndTask((e) => {
+      const definition = e.execution.task.definition as Record<string, unknown>;
+      if (definition.type !== MAKEFILE_TASK_TYPE) return;
+      const target = definition.target as string;
+      statusBarItem.text = `$(pass) Make: ${target}`;
+      statusBarItem.backgroundColor = undefined;
+      statusBarItem.show();
+      // 3 秒后自动隐藏
+      setTimeout(() => {
+        statusBarItem.hide();
+      }, 3000);
+    })
+  );
 
   // ---- 双击检测状态 ----
   // 记录上一次点击的 target 和时间，用于判定双击
