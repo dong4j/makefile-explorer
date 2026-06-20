@@ -1,6 +1,6 @@
 # Makefile Explorer
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
+[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![VSCode](https://img.shields.io/badge/vscode-%5E1.85.0-007ACC)](https://code.visualstudio.com/)
 [![中文文档](https://img.shields.io/badge/文档-中文-red)](README-ZH.md)
@@ -24,6 +24,7 @@ Built for the monorepo reality: multiple Makefiles, nested directories, dozens o
 - **🌲 Tree View** — Targets grouped by Makefile in the Explorer sidebar
 - **▶ Double-Click Execute** — Double-click any target to run it in a dedicated terminal via Task API
 - **🔍 Jump to Definition** — Click the inline icon or right-click → "Go to Target Definition"
+- **📋 Copy Make Command** — Right-click a target → "Copy Make Command" to copy a terminal-ready command to clipboard
 - **📎 Dependency Display** — Expand a target to see its dependencies (extracted from `target: dep1 dep2`)
 - **📊 Status Bar Indicator** — Shows running/completed status for Make tasks in the VSCode status bar
 - **🔔 Make Availability Check** — Warns on startup if `make` is not found in PATH
@@ -41,6 +42,7 @@ Built for the monorepo reality: multiple Makefiles, nested directories, dozens o
 3. Expand a Makefile node to see its targets; expand a target node to see dependencies
 4. **Double-click** a target → executes `make <target>` in a dedicated terminal (each target gets its own terminal tab named `Make - <target>`)
 5. **Click the 📎 icon** or **right-click** → "Go to Definition" → opens the Makefile at the target's line
+6. **Right-click** a target → "Copy Make Command" → copies `cd "dir" && make -f Makefile <target>` to clipboard
 
 ### Target comments
 
@@ -79,6 +81,10 @@ Above-target comments take priority over inline `##` comments.
 See the [GitHub issues](https://github.com/dong4j/vscode-makefile-explorer/issues) for the full list.
 
 ## Release Notes
+
+### 0.6.0
+
+- Right-click "Copy Make Command" — copies a terminal-ready command to clipboard
 
 ### 0.5.0
 

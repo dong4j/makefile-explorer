@@ -2,7 +2,7 @@
   "name": "makefile-explorer",
   "displayName": "Makefile Explorer",
   "description": "Browse and run Makefile targets in a tree view — double-click to run, click icon to jump to definition",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "dong4j",
   "license": "MIT",
   "repository": {
@@ -57,6 +57,11 @@
         "icon": "$(go-to-file)"
       },
       {
+        "command": "makefile-explorer.copyMakeCommand",
+        "title": "Copy Make Command",
+        "icon": "$(copy)"
+      },
+      {
         "command": "makefile-explorer.refresh",
         "title": "Refresh Makefile Targets",
         "icon": "$(refresh)"
@@ -98,7 +103,12 @@
         {
           "command": "makefile-explorer.goToDefinition",
           "when": "viewItem == makefileTarget",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "makefile-explorer.copyMakeCommand",
+          "when": "viewItem == makefileTarget",
+          "group": "navigation@2"
         }
       ]
     }
