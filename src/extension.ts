@@ -309,6 +309,25 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   /**
+   * 切换视图模式（PR6 View as List）—— tree ↔ flat
+   *
+   * 调用 provider.toggleViewMode() 内部翻转 viewMode 并触发 _onDidChangeTreeData
+   * VSCode 拿到事件后会自动调用 getChildren 重绘
+   *
+   * 入口：
+   * - 标题栏 $(list-tree) 按钮
+   * - 命令面板「Makefile Explorer: Toggle View Mode (Tree / Flat)」
+   *
+   * viewMode 不持久化（每次启动回 tree），由用户主动切换
+   */
+  context.subscriptions.push(
+    vscode.commands.registerCommand('makefile-explorer.toggleViewMode', () => {
+      provider.toggleViewMode();
+      console.log(`[Makefile Explorer] 视图模式切换为: ${provider.getViewMode()}`);
+    })
+  );
+
+  /**
    * 重跑最近一次的 Make target（PR4 新增）
    *
    * 用途：双击 target 执行后，用户经常想"再跑一次刚才那个"

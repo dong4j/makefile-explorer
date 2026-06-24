@@ -75,6 +75,11 @@
         "command": "makefile-explorer.refresh",
         "title": "Refresh Makefile Targets",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "makefile-explorer.toggleViewMode",
+        "title": "Toggle View Mode (Tree / Flat)",
+        "icon": "$(list-tree)"
       }
     ],
     "taskDefinitions": [
@@ -100,6 +105,11 @@
       "view/title": [
         {
           "command": "makefile-explorer.refresh",
+          "when": "view == makefileExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "makefile-explorer.toggleViewMode",
           "when": "view == makefileExplorer",
           "group": "navigation"
         }
