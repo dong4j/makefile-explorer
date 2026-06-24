@@ -21,9 +21,10 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { exec } from 'child_process';
-import { MakefileTreeProvider } from './MakefileTreeProvider';
-import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './MakefileTaskProvider';
+import { MakefileTreeProvider } from './providers/MakefileTreeProvider';
+import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './providers/MakefileTaskProvider';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -241,6 +242,32 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.refresh();
       console.log('[Makefile Explorer] 手动刷新');
     })
+  );
+
+  /**
+   * 复制可执行的 make 命令到剪贴板
+   *
+   * 生成格式：cd "工作目录" && make -f Makefile名 target名
+   * 方便用户在终端中直接粘贴执行
+   */
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'makefile-explorer.copyMakeCommand',
+      async (args: Record<string, unknown> | undefined) => {
+        const info = normalizeArgs(args);
+        if (!info) {
+          vscode.window.showWarningMessage('请从 Make Targets 面板右键使用此功能');
+          return;
+        }
+
+        const dir = path.dirname(info.filePath);
+        const makefileName = path.basename(info.filePath);
+        const command = `cd "${dir}" && make -f ${makefileName} ${info.name}`;
+
+        await vscode.env.clipboard.writeText(command);
+        vscode.window.showInformationMessage(`已复制: ${command}`);
+      }
+    )
   );
 
   // ---- 初始扫描 ----

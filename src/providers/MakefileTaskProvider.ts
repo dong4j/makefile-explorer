@@ -11,21 +11,11 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { parseTargets } from './TargetParser';
+import { parseTargets } from '../services/TargetParser';
+import { MAKEFILE_GLOBS, EXCLUDE_PATTERN } from '../services/MakefileScanner';
 
 /** 与 package.json taskDefinitions.type 保持一致 */
 export const MAKEFILE_TASK_TYPE = 'makefile-explorer';
-
-/** Makefile 扫描 glob（与 MakefileTreeProvider 对齐） */
-const MAKEFILE_GLOBS = [
-  '**/Makefile',
-  '**/makefile',
-  '**/GNUmakefile',
-  '**/*.mk',
-  '**/Makefile.*'
-];
-
-const EXCLUDE_PATTERN = '**/{node_modules,vendor,.build,Pods,Carthage,third_party,.deps,.git,dist,build,target}/**';
 
 /** 自定义任务 definition 字段 */
 export interface MakefileTaskDefinition extends vscode.TaskDefinition {

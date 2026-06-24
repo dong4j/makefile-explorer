@@ -1,44 +1,40 @@
 /**
- * 类型定义 — Makefile Explorer 的数据模型
+ * models/MakefileNode.ts — VSCode TreeItem 子类，表示侧边栏树中的节点
+ *
+ * 与 Target.ts 的职责分工：
+ * - Target.ts：纯数据（Target interface + NodeType 联合类型），可独立单测
+ * - MakefileNode.ts：UI 层包装，把 Target 数据附加到 vscode.TreeItem 上
+ *
+ * 为什么把 MakefileNode 单独成文件：
+ * - 它继承 vscode.TreeItem，导入 vscode namespace 后就不能脱离 VSCode runtime
+ * - 单独放可以让单测时只 mock / 跳过本文件，TargetParser 仍可纯函数测试
+ *
+ * 节点三种类型对应的视觉/交互：
+ * - makefile：文件图标，点击在编辑器打开该 Makefile
+ * - target：symbol-method 图标，绑 handleTargetClick 命令触发双击检测
+ * - dependency：symbol-parameter 图标，叶子节点，绑 goToDefinition 跳转文件头
  */
 
 import * as vscode from 'vscode';
+import { NodeType } from './Target';
 
 /**
- * 表示 Makefile 中的一个可执行 target
- */
-export interface Target {
-  /** target 名称，如 build / test / clean */
-  name: string;
-  /** 在 Makefile 中的行号（0-based） */
-  line: number;
-  /** 从 target 上方注释提取的描述信息 */
-  description: string;
-  /** 所属 Makefile 文件的绝对路径 */
-  filePath: string;
-  /** target 的依赖列表（冒号后的部分），如 ['src/main.c', 'utils.o'] */
-  dependencies: string[];
-}
-
-/**
- * 树节点的三种类型：
- * - 'makefile': Makefile 文件节点（可展开，包含 targets）
- * - 'target': Makefile 中的可操作命令节点（可展开，包含 dependencies）
- * - 'dependency': target 的依赖项（叶子节点，仅展示）
- */
-export type NodeType = 'makefile' | 'target' | 'dependency';
-
-/**
- * 树节点数据结构，TreeDataProvider 使用此类构建树
+ * 树节点数据结构，TreeDataProvider 使用此类构建侧边栏树
+ *
+ * 字段说明：
+ * - nodeType：决定图标 / 命令 / contextValue，UI 层据此分支渲染
+ * - filePath：所有节点都记所属 Makefile 路径，方便跳定义 / 启动 Task
+ * - targetLine：仅 target 节点有效（其他类型为 -1），用于 editor.revealRange
+ * - children：makefile 节点存 target 列表，target 节点存 dependency 列表
  */
 export class MakefileNode extends vscode.TreeItem {
-  /** 节点类型 */
+  /** 节点类型，决定 UI 渲染分支 */
   readonly nodeType: NodeType;
-  /** 所属 Makefile 路径（target 节点关联到父文件） */
+  /** 所属 Makefile 路径（target / dependency 节点关联到父文件） */
   readonly filePath: string;
   /** target 在 Makefile 中的行号（仅 target 节点有效） */
   readonly targetLine: number;
-  /** 子节点（仅 makefile 节点有效，存储 Target 节点列表） */
+  /** 子节点（仅 makefile / target 节点有效） */
   children: MakefileNode[] = [];
 
   constructor(

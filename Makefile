@@ -1,7 +1,7 @@
 ## Makefile Explorer — 项目自身的 Makefile
 ##
 ## ⚠️ 发布前：手动修改下方的 VERSION，然后执行 `make release`
-VERSION := 0.5.0
+VERSION := 0.6.0
 
 .PHONY: all install-deps compile watch package install clean release
 

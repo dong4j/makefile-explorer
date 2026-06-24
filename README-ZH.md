@@ -1,6 +1,6 @@
 # Makefile Explorer
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
+[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![VSCode](https://img.shields.io/badge/vscode-%5E1.85.0-007ACC)](https://code.visualstudio.com/)
 
@@ -23,6 +23,7 @@
 - **🌲 树形视图** —— targets 按 Makefile 分组，展示在资源管理器侧边栏
 - **▶ 双击执行** —— 双击任意 target 通过 Task API 在独立终端运行
 - **🔍 跳转定义** —— 点击右侧 📎 图标或右键 → "Go to Target Definition"，精确跳转到定义行
+- **📋 复制 Make 命令** —— 右键 target → "Copy Make Command"，将终端可执行命令复制到剪贴板
 - **📎 依赖展示** —— 展开 target 可查看依赖项（从 `target: dep1 dep2` 解析），一目了然
 - **📊 状态栏指示** —— VSCode 状态栏显示 Make 任务执行中 / 完成状态
 - **🔔 make 可用性检测** —— 启动时检测 `make` 是否在 PATH 中，不可用则弹警告
@@ -40,6 +41,7 @@
 3. 展开 Makefile 节点查看所有 targets；展开 target 节点查看依赖项
 4. **双击** target → 在独立终端执行 `make <target>`（每个 target 在独立终端 `Make - <target>` 中运行）
 5. **点击右侧 📎 图标** 或 **右键** → "Go to Definition" → 跳转到 Makefile 对应行
+6. **右键** target → "Copy Make Command" → 将 `cd "目录" && make -f Makefile <target>` 复制到剪贴板
 
 ### Target 注释
 
@@ -78,6 +80,10 @@ test: ## 运行完整测试套件
 完整列表见 [GitHub Issues](https://github.com/dong4j/vscode-makefile-explorer/issues)。
 
 ## 更新日志
+
+### 0.6.0
+
+- 右键 "Copy Make Command" — 复制终端可执行命令到剪贴板
 
 ### 0.5.0
 

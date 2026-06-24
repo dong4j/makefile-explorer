@@ -19,7 +19,7 @@
  * - target: deps ## 描述      ← 同行注释（有依赖）
  */
 
-import { Target } from './types';
+import { Target } from '../models/Target';
 
 /** 匹配同行 `##` 后的描述文本 */
 const INLINE_COMMENT_RE = /##\s*(.+)$/;

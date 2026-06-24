@@ -49,6 +49,7 @@ extension.ts (activate)
   │   ├── handleTargetClick → double-click → executeTask
   │   ├── runTarget → direct execution (no double-click)
   │   ├── goToDefinition → opens file, jumps to line
+  │   ├── copyMakeCommand → copies terminal-ready command to clipboard
   │   └── refresh → re-scans workspace
   ├── status bar: task start/end events → running/complete indicator
   ├── make availability check: warns if make not in PATH
