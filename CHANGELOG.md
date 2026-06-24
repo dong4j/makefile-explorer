@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart target filtering (skips `.PHONY`, variable assignments, empty targets)
 - Dedicated "Make" terminal (reuses existing terminal to avoid tab spam)
 
+[0.7.0]: https://github.com/dong4j/vscode-makefile-explorer/releases/tag/v0.7.0
 [0.6.0]: https://github.com/dong4j/vscode-makefile-explorer/releases/tag/v0.6.0
 [0.5.0]: https://github.com/dong4j/vscode-makefile-explorer/releases/tag/v0.5.0
 [0.4.0]: https://github.com/dong4j/vscode-makefile-explorer/releases/tag/v0.4.0

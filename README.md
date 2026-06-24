@@ -1,6 +1,6 @@
 # Makefile Explorer
 
-[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue)](https://github.com/dong4j/vscode-makefile-explorer)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![VSCode](https://img.shields.io/badge/vscode-%5E1.85.0-007ACC)](https://code.visualstudio.com/)
 [![中文文档](https://img.shields.io/badge/文档-中文-red)](README-ZH.md)
