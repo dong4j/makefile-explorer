@@ -32,6 +32,7 @@
 import * as vscode from 'vscode';
 import { MakefileNode } from '../models/MakefileNode';
 import { MakefileScanner } from '../services/MakefileScanner';
+import { TaskHistoryService } from '../services/TaskHistoryService';
 
 /** 视图模式：tree = 树形（默认）；flat = 平铺所有 target */
 export type ViewMode = 'tree' | 'flat';
@@ -55,10 +56,21 @@ export class MakefileTreeProvider implements vscode.TreeDataProvider<MakefileNod
   private viewMode: ViewMode = 'tree';
 
   /**
-   * @param scanner 可选；不传则 new 一个默认 scanner（生产代码走默认）
+   * 任务历史服务（PR7 节点徽标用）—— 可选注入
+   * 单元测试可不传；生产代码在 extension.ts 中注入
    */
-  constructor(scanner: MakefileScanner = new MakefileScanner()) {
+  private history: TaskHistoryService | undefined;
+
+  /**
+   * @param scanner 可选；不传则 new 一个默认 scanner（生产代码走默认）
+   * @param history 可选；注入后 tree 节点会显示 task 状态徽标（PR7）
+   */
+  constructor(
+    scanner: MakefileScanner = new MakefileScanner(),
+    history?: TaskHistoryService
+  ) {
     this.scanner = scanner;
+    this.history = history;
 
     // 监听工作区中 Makefile 文件的变化，自动刷新
     this.watcher = vscode.workspace.createFileSystemWatcher(
@@ -79,10 +91,35 @@ export class MakefileTreeProvider implements vscode.TreeDataProvider<MakefileNod
 
   /**
    * 刷新树数据：重新扫描 Makefile → 通知 VSCode 刷新 UI
+   *
+   * PR7 增强：扫描后给每个 target 节点应用 task 状态徽标
+   * - history 不存在（单测）→ 跳过
+   * - history 存在 → 遍历 target 节点调 setTaskStatus
    */
   async refresh(): Promise<void> {
     this.fileNodes = await this.scanner.scanWorkspace();
+    this.applyTaskStatusToNodes();
     this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * 把 task 状态应用到所有 target 节点（PR7 节点徽标）
+   *
+   * 实现：遍历 fileNodes → 找 target 子节点 → 查 history.getStatus → 调 setTaskStatus
+   * 不存在 status 的 target 节点（首次构建）保持默认 symbol-method 图标
+   */
+  private applyTaskStatusToNodes(): void {
+    if (!this.history) return;
+    for (const fileNode of this.fileNodes) {
+      for (const targetNode of fileNode.children) {
+        if (targetNode.nodeType !== 'target') continue;
+        const status = this.history.getStatus(
+          targetNode.label as string,
+          targetNode.filePath
+        );
+        targetNode.setTaskStatus(status);
+      }
+    }
   }
 
   /**

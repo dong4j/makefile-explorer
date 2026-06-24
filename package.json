@@ -80,6 +80,11 @@
         "command": "makefile-explorer.toggleViewMode",
         "title": "Toggle View Mode (Tree / Flat)",
         "icon": "$(list-tree)"
+      },
+      {
+        "command": "makefile-explorer.clearTaskStatus",
+        "title": "Clear Task Status",
+        "icon": "$(clear-all)"
       }
     ],
     "taskDefinitions": [

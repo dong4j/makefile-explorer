@@ -83,4 +83,79 @@ describe('TaskHistoryService', () => {
     assert.ok(last);
     assert.equal(last.name, 'build');
   });
+
+  // ============================================================
+  // PR7: 节点徽标 + 失败建议
+  // ============================================================
+
+  describe('PR7: task 状态查询', () => {
+    it('初始 getStatus 返回 undefined', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      assert.equal(svc.getStatus('build', '/p/Makefile'), undefined);
+    });
+
+    it('record success 后 getStatus 返回 success', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('build', '/p/Makefile', 'success');
+      assert.equal(svc.getStatus('build', '/p/Makefile'), 'success');
+    });
+
+    it('record failed 后 getStatus 返回 failed', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('test', '/p/Makefile', 'failed', 'No rule to make target');
+      assert.equal(svc.getStatus('test', '/p/Makefile'), 'failed');
+    });
+
+    it('getError 失败时返回 error 字符串', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('test', '/p/Makefile', 'failed', 'No rule to make target `foo`');
+      const err = svc.getError('test', '/p/Makefile');
+      assert.equal(err, 'No rule to make target `foo`');
+    });
+
+    it('getError 成功时返回 undefined', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('build', '/p/Makefile', 'success');
+      assert.equal(svc.getError('build', '/p/Makefile'), undefined);
+    });
+
+    it('同名 target 在不同 Makefile 互不影响', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('build', '/p1/Makefile', 'success');
+      svc.record('build', '/p2/Makefile', 'failed', 'error');
+      assert.equal(svc.getStatus('build', '/p1/Makefile'), 'success');
+      assert.equal(svc.getStatus('build', '/p2/Makefile'), 'failed');
+    });
+
+    it('clearAllStatus 后所有 getStatus 返回 undefined（lastTask 不变）', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      svc.record('build', '/p/Makefile', 'success');
+      svc.clearAllStatus();
+      assert.equal(svc.getStatus('build', '/p/Makefile'), undefined);
+      // lastTask 仍保留
+      const last = svc.getLast();
+      assert.ok(last);
+      assert.equal(last.name, 'build');
+    });
+
+    it('FIFO 截断：超过 50 条时删除最旧', () => {
+      const svc = new TaskHistoryService(makeMockContext());
+      // 写 51 条（每条 timestamp 不同）
+      for (let i = 0; i < 51; i++) {
+        svc.record(`target_${i}`, '/p/Makefile', 'success');
+      }
+      // 第 0 条（最旧）应被删除
+      assert.equal(svc.getStatus('target_0', '/p/Makefile'), undefined, 'target_0 应被 FIFO 截断');
+      // 第 50 条（最新）应保留
+      assert.equal(svc.getStatus('target_50', '/p/Makefile'), 'success');
+    });
+
+    it('跨 instance 共享 status（与 lastTask 行为一致）', () => {
+      const ctx = makeMockContext();
+      const svc1 = new TaskHistoryService(ctx);
+      svc1.record('build', '/p/Makefile', 'success');
+      const svc2 = new TaskHistoryService(ctx);
+      assert.equal(svc2.getStatus('build', '/p/Makefile'), 'success');
+    });
+  });
 });
