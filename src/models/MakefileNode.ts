@@ -93,8 +93,8 @@ export class MakefileNode extends vscode.TreeItem {
    * 设置 target 节点状态徽标（PR7）
    *
    * 视觉映射：
-   * - success → $(check) + charts.green
-   * - failed  → $(error) + charts.red
+   * - success → $(check) + terminal.ansiGreen（绿色，所有主题都支持）
+   * - failed  → $(error) + terminal.ansiRed（红色，所有主题都支持）
    * - undefined → 恢复默认 symbol-method
    *
    * 注意：仅 target 节点有效，dependency / makefile 节点调用此方法无效
@@ -107,12 +107,12 @@ export class MakefileNode extends vscode.TreeItem {
     if (status === 'success') {
       this.iconPath = new vscode.ThemeIcon(
         'check',
-        new vscode.ThemeColor('charts.green')
+        new vscode.ThemeColor('terminal.ansiGreen')
       );
     } else if (status === 'failed') {
       this.iconPath = new vscode.ThemeIcon(
         'error',
-        new vscode.ThemeColor('charts.red')
+        new vscode.ThemeColor('terminal.ansiRed')
       );
     } else {
       this.iconPath = new vscode.ThemeIcon('symbol-method');

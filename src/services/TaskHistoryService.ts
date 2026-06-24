@@ -16,9 +16,8 @@
  *
  * 数据模型：
  * - LastTaskRecord（PR4）：name + filePath + timestamp，用于 runLastTask
- * - TaskRecord（PR7）：name + filePath + status + timestamp + error?
+ * - TaskRecord（PR7）：name + filePath + status + timestamp
  *   - status 决定节点徽标（success / failed）
- *   - error 存 stderr 摘要，用于失败建议分析
  *
  * 持久化时机：
  * - onDidEndTaskProcess 监听器在 task.type === makefile-explorer 时调用 record()
@@ -62,8 +61,6 @@ export interface TaskRecord {
   status: TaskStatus;
   /** 记录时间戳（ms） */
   timestamp: number;
-  /** 失败时的 stderr 摘要（前 500 字符，可选） */
-  error?: string;
 }
 
 /** globalState 存储 key：最近一次的 target（PR4） */
@@ -92,9 +89,8 @@ function makeRecordKey(filePath: string, name: string): string {
  *   history.record('build', '/path/to/Makefile', 'success');
  *   const last = history.getLast();
  *
- *   // PR7: 查询 target 状态 + 错误信息
+ *   // PR7: 查询 target 状态
  *   const status = history.getStatus('build', '/path/to/Makefile');
- *   const err = history.getError('build', '/path/to/Makefile');
  *
  * 关键约束：
  * - globalState 的 update 是异步的，但 VSCode 实现是同步内存写入 + 异步持久化
@@ -118,9 +114,8 @@ export class TaskHistoryService {
    * @param name target 名
    * @param filePath Makefile 绝对路径
    * @param status 执行结果（PR7 新增）
-   * @param error stderr 摘要，可选
    */
-  record(name: string, filePath: string, status: TaskStatus = 'success', error?: string): void {
+  record(name: string, filePath: string, status: TaskStatus = 'success'): void {
     // 更新 lastTask（PR4 路径，给 runLastTask 用）
     const lastRecord: LastTaskRecord = {
       name,
@@ -136,8 +131,7 @@ export class TaskHistoryService {
       name,
       filePath,
       status,
-      timestamp: Date.now(),
-      error
+      timestamp: Date.now()
     };
 
     // FIFO 截断：超出 MAX_RECORDS 时按 timestamp 升序删除最旧
@@ -177,19 +171,6 @@ export class TaskHistoryService {
     const statusMap = this.loadAllStatus();
     const key = makeRecordKey(filePath, name);
     return statusMap[key]?.status;
-  }
-
-  /**
-   * 获取指定 target 的最近失败错误信息
-   *
-   * @param name target 名
-   * @param filePath Makefile 绝对路径
-   * @returns 错误信息；无记录或非失败时返回 undefined
-   */
-  getError(name: string, filePath: string): string | undefined {
-    const statusMap = this.loadAllStatus();
-    const key = makeRecordKey(filePath, name);
-    return statusMap[key]?.error;
   }
 
   /**

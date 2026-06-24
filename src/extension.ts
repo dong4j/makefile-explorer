@@ -28,7 +28,6 @@ import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from
 import { TaskHistoryService } from './services/TaskHistoryService';
 import { ArgsPromptService } from './services/ArgsPromptService';
 import { parseArgs } from './services/argsParser';
-import { analyzeError, truncateStderr } from './services/TaskStatusService';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -114,9 +113,9 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 监听 task 结束事件（含 exitCode + stderr）—— PR7 升级
-  // onDidEndTaskProcess 比 onDidEndTask 多 2 个字段：exitCode 和 execution
-  // 用 onDidEndTaskProcess 拿 stderr 用于智能失败建议
+  // 监听 task 结束事件（含 exitCode）—— PR7 升级到 onDidEndTaskProcess
+  // 用于：状态栏失败变红 + 节点徽标 + FIFO 持久化
+  // （智能失败建议弹窗已删 —— 节点徽标 + 状态栏足够）
   context.subscriptions.push(
     vscode.tasks.onDidEndTaskProcess((e) => {
       const definition = e.execution.task.definition as Record<string, unknown>;
@@ -126,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const exitCode = e.exitCode;
       const isSuccess = exitCode === 0;
 
-      // 状态栏显示结果（成功绿色，失败红色）
+      // 状态栏显示结果（成功无背景色，失败变红）
       statusBarItem.text = isSuccess
         ? `$(check) Make: ${target}`
         : `$(error) Make: ${target} (exit ${exitCode})`;
@@ -138,47 +137,11 @@ export function activate(context: vscode.ExtensionContext): void {
         statusBarItem.hide();
       }, 3000);
 
-      // 提取 stderr（PR7 智能失败建议）
-      // execution 对象类型因 task provider 而异，统一 any 化处理
-      const execution = e.execution as { stderr?: string };
-      const stderr = (execution?.stderr ?? '').toString();
-
       // 记录到 history（成功失败都记 —— 失败时方便一键重试 + 节点徽标）
       if (target && makefilePath) {
-        taskHistory.record(
-          target,
-          makefilePath,
-          isSuccess ? 'success' : 'failed',
-          isSuccess ? undefined : truncateStderr(stderr)
-        );
+        taskHistory.record(target, makefilePath, isSuccess ? 'success' : 'failed');
         // 触发 tree 刷新让节点徽标更新
         provider.refresh();
-      }
-
-      // 智能失败建议：失败且 stderr 非空时弹
-      if (!isSuccess && stderr.trim()) {
-        const suggestions = analyzeError(stderr);
-        const message = suggestions
-          .map((s, i) => `${i + 1}. ${s.cause}\n   建议：${s.fix}`)
-          .join('\n\n');
-        vscode.window
-          .showErrorMessage(
-            `Make: ${target} 失败（exit ${exitCode}）`,
-            '查看建议'
-          )
-          .then((selection) => {
-            if (selection === '查看建议') {
-              vscode.window.showInformationMessage(
-                `Make: ${target} 失败原因分析：\n\n${message}`,
-                '重试',
-                '关闭'
-              ).then((action) => {
-                if (action === '重试') {
-                  executeTarget(target, makefilePath);
-                }
-              });
-            }
-          });
       }
     })
   );

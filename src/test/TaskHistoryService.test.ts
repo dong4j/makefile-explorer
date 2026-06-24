@@ -102,27 +102,20 @@ describe('TaskHistoryService', () => {
 
     it('record failed 后 getStatus 返回 failed', () => {
       const svc = new TaskHistoryService(makeMockContext());
-      svc.record('test', '/p/Makefile', 'failed', 'No rule to make target');
+      svc.record('test', '/p/Makefile', 'failed');
       assert.equal(svc.getStatus('test', '/p/Makefile'), 'failed');
     });
 
-    it('getError 失败时返回 error 字符串', () => {
+    it('record 默认状态是 success（与 PR4 行为兼容）', () => {
       const svc = new TaskHistoryService(makeMockContext());
-      svc.record('test', '/p/Makefile', 'failed', 'No rule to make target `foo`');
-      const err = svc.getError('test', '/p/Makefile');
-      assert.equal(err, 'No rule to make target `foo`');
-    });
-
-    it('getError 成功时返回 undefined', () => {
-      const svc = new TaskHistoryService(makeMockContext());
-      svc.record('build', '/p/Makefile', 'success');
-      assert.equal(svc.getError('build', '/p/Makefile'), undefined);
+      svc.record('build', '/p/Makefile');
+      assert.equal(svc.getStatus('build', '/p/Makefile'), 'success');
     });
 
     it('同名 target 在不同 Makefile 互不影响', () => {
       const svc = new TaskHistoryService(makeMockContext());
       svc.record('build', '/p1/Makefile', 'success');
-      svc.record('build', '/p2/Makefile', 'failed', 'error');
+      svc.record('build', '/p2/Makefile', 'failed');
       assert.equal(svc.getStatus('build', '/p1/Makefile'), 'success');
       assert.equal(svc.getStatus('build', '/p2/Makefile'), 'failed');
     });

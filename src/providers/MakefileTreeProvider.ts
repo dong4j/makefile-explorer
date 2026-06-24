@@ -232,6 +232,13 @@ export class MakefileTreeProvider implements vscode.TreeDataProvider<MakefileNod
           flatNode.collapsibleState = targetNode.collapsibleState;
         }
 
+        // 应用 task 状态徽标（PR7）—— flat 模式需要单独 setTaskStatus
+        // 因为 flatNode 是新建的，不在 applyTaskStatusToNodes 处理的 fileNodes 里
+        if (this.history) {
+          const status = this.history.getStatus(originalName, targetNode.filePath);
+          flatNode.setTaskStatus(status);
+        }
+
         result.push(flatNode);
       }
     }
