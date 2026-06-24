@@ -28,6 +28,7 @@ import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from
 import { TaskHistoryService } from './services/TaskHistoryService';
 import { ArgsPromptService } from './services/ArgsPromptService';
 import { parseArgs } from './services/argsParser';
+import { analyzeError, truncateStderr } from './services/TaskStatusService';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -76,15 +77,16 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   });
 
-  // ---- 创建 TreeDataProvider 并注册 TreeView ----
-  const provider = new MakefileTreeProvider();
-
   // ---- TaskHistoryService：持久化最近一次跑的 target（PR4 Run Last Task）----
   // 用 context.globalState 跨 workspace 共享；切换项目后 last task 各自独立
   const taskHistory = new TaskHistoryService(context);
 
   // ---- ArgsPromptService：右键「Run with Args...」时弹输入框收集 KEY=VALUE 参数（PR5 Run with Args）----
   const argsPrompt = new ArgsPromptService();
+
+  // ---- 创建 TreeDataProvider 并注册 TreeView ----
+  // PR7 注入 taskHistory，让 target 节点显示 ✓/✗ 状态徽标
+  const provider = new MakefileTreeProvider(undefined, taskHistory);
 
   const treeView = vscode.window.createTreeView('makefileExplorer', {
     treeDataProvider: provider,
@@ -112,24 +114,71 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // 监听 task 结束事件，显示完成状态 3 秒后自动隐藏
-  // 同时记录到 TaskHistoryService，供 runLastTask 命令一键重跑（PR4）
+  // 监听 task 结束事件（含 exitCode + stderr）—— PR7 升级
+  // onDidEndTaskProcess 比 onDidEndTask 多 2 个字段：exitCode 和 execution
+  // 用 onDidEndTaskProcess 拿 stderr 用于智能失败建议
   context.subscriptions.push(
-    vscode.tasks.onDidEndTask((e) => {
+    vscode.tasks.onDidEndTaskProcess((e) => {
       const definition = e.execution.task.definition as Record<string, unknown>;
       if (definition.type !== MAKEFILE_TASK_TYPE) return;
       const target = definition.target as string;
       const makefilePath = definition.makefilePath as string;
-      statusBarItem.text = `$(check) Make: ${target}`;
-      statusBarItem.backgroundColor = undefined;
+      const exitCode = e.exitCode;
+      const isSuccess = exitCode === 0;
+
+      // 状态栏显示结果（成功绿色，失败红色）
+      statusBarItem.text = isSuccess
+        ? `$(check) Make: ${target}`
+        : `$(error) Make: ${target} (exit ${exitCode})`;
+      statusBarItem.backgroundColor = isSuccess
+        ? undefined
+        : new vscode.ThemeColor('statusBarItem.errorBackground');
       statusBarItem.show();
-      // 3 秒后自动隐藏
       setTimeout(() => {
         statusBarItem.hide();
       }, 3000);
-      // 记录到 history（成功失败都记 —— 失败时方便一键重试）
+
+      // 提取 stderr（PR7 智能失败建议）
+      // execution 对象类型因 task provider 而异，统一 any 化处理
+      const execution = e.execution as { stderr?: string };
+      const stderr = (execution?.stderr ?? '').toString();
+
+      // 记录到 history（成功失败都记 —— 失败时方便一键重试 + 节点徽标）
       if (target && makefilePath) {
-        taskHistory.record(target, makefilePath);
+        taskHistory.record(
+          target,
+          makefilePath,
+          isSuccess ? 'success' : 'failed',
+          isSuccess ? undefined : truncateStderr(stderr)
+        );
+        // 触发 tree 刷新让节点徽标更新
+        provider.refresh();
+      }
+
+      // 智能失败建议：失败且 stderr 非空时弹
+      if (!isSuccess && stderr.trim()) {
+        const suggestions = analyzeError(stderr);
+        const message = suggestions
+          .map((s, i) => `${i + 1}. ${s.cause}\n   建议：${s.fix}`)
+          .join('\n\n');
+        vscode.window
+          .showErrorMessage(
+            `Make: ${target} 失败（exit ${exitCode}）`,
+            '查看建议'
+          )
+          .then((selection) => {
+            if (selection === '查看建议') {
+              vscode.window.showInformationMessage(
+                `Make: ${target} 失败原因分析：\n\n${message}`,
+                '重试',
+                '关闭'
+              ).then((action) => {
+                if (action === '重试') {
+                  executeTarget(target, makefilePath);
+                }
+              });
+            }
+          });
       }
     })
   );
@@ -324,6 +373,22 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('makefile-explorer.toggleViewMode', () => {
       provider.toggleViewMode();
       console.log(`[Makefile Explorer] 视图模式切换为: ${provider.getViewMode()}`);
+    })
+  );
+
+  /**
+   * 清除所有 task 状态（PR7 节点徽标重置）—— 隐藏命令
+   *
+   * 用途：用户想重置所有 target 节点徽标（如测试 / 整理 globalState）
+   * 入口：命令面板「Makefile Explorer: Clear Task Status」
+   *
+   * 注意：只清 taskStatus，不清 lastTask（一键重跑不受影响）
+   */
+  context.subscriptions.push(
+    vscode.commands.registerCommand('makefile-explorer.clearTaskStatus', () => {
+      taskHistory.clearAllStatus();
+      provider.refresh();
+      console.log('[Makefile Explorer] 已清除所有 task 状态');
     })
   );
 

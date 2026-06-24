@@ -11,12 +11,13 @@
  *
  * 节点三种类型对应的视觉/交互：
  * - makefile：文件图标，点击在编辑器打开该 Makefile
- * - target：symbol-method 图标，绑 handleTargetClick 命令触发双击检测
+ * - target：symbol-method 图标（PR7 可覆盖为 ✓/✗ 状态徽标），绑 handleTargetClick 命令触发双击检测
  * - dependency：symbol-parameter 图标，叶子节点，绑 goToDefinition 跳转文件头
  */
 
 import * as vscode from 'vscode';
 import { NodeType } from './Target';
+import type { TaskStatus } from '../services/TaskHistoryService';
 
 /**
  * 树节点数据结构，TreeDataProvider 使用此类构建侧边栏树
@@ -26,6 +27,7 @@ import { NodeType } from './Target';
  * - filePath：所有节点都记所属 Makefile 路径，方便跳定义 / 启动 Task
  * - targetLine：仅 target 节点有效（其他类型为 -1），用于 editor.revealRange
  * - children：makefile 节点存 target 列表，target 节点存 dependency 列表
+ * - taskStatus（PR7）：target 节点最近一次执行状态，决定徽标
  */
 export class MakefileNode extends vscode.TreeItem {
   /** 节点类型，决定 UI 渲染分支 */
@@ -36,6 +38,8 @@ export class MakefileNode extends vscode.TreeItem {
   readonly targetLine: number;
   /** 子节点（仅 makefile / target 节点有效） */
   children: MakefileNode[] = [];
+  /** target 节点最近一次执行状态（PR7 节点徽标用） */
+  taskStatus: TaskStatus | undefined = undefined;
 
   constructor(
     label: string,
@@ -82,6 +86,36 @@ export class MakefileNode extends vscode.TreeItem {
         title: 'Go to Definition',
         arguments: [{ name: '', filePath, line: 0 }]
       };
+    }
+  }
+
+  /**
+   * 设置 target 节点状态徽标（PR7）
+   *
+   * 视觉映射：
+   * - success → $(check) + charts.green
+   * - failed  → $(error) + charts.red
+   * - undefined → 恢复默认 symbol-method
+   *
+   * 注意：仅 target 节点有效，dependency / makefile 节点调用此方法无效
+   *
+   * @param status 任务状态，undefined 表示清除徽标
+   */
+  setTaskStatus(status: TaskStatus | undefined): void {
+    if (this.nodeType !== 'target') return;
+    this.taskStatus = status;
+    if (status === 'success') {
+      this.iconPath = new vscode.ThemeIcon(
+        'check',
+        new vscode.ThemeColor('charts.green')
+      );
+    } else if (status === 'failed') {
+      this.iconPath = new vscode.ThemeIcon(
+        'error',
+        new vscode.ThemeColor('charts.red')
+      );
+    } else {
+      this.iconPath = new vscode.ThemeIcon('symbol-method');
     }
   }
 }
