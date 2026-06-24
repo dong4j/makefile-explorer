@@ -26,8 +26,17 @@ export interface MakefileTaskDefinition extends vscode.TaskDefinition {
 
 /**
  * 根据 target 与 Makefile 路径构造可执行的 VS Code Task
+ *
+ * @param targetName target 名，如 build / test
+ * @param makefilePath Makefile 绝对路径
+ * @param args 可选，make 命令的额外参数（如 ['VERSION=0.1.0']）
+ *              —— PR5 Run with Args 引入
  */
-export function createMakeTask(targetName: string, makefilePath: string): vscode.Task {
+export function createMakeTask(
+  targetName: string,
+  makefilePath: string,
+  args: string[] = []
+): vscode.Task {
   const makefileDir = path.dirname(makefilePath);
   const fileName = path.basename(makefilePath);
 
@@ -47,12 +56,21 @@ export function createMakeTask(targetName: string, makefilePath: string): vscode
     makefilePath
   };
 
+  // 拼接完整 make 命令：make -f <file> <target> [KEY=VAL ...]
+  const argString = args.length > 0 ? ' ' + args.join(' ') : '';
+  const command = `make -f ${fileName} ${targetName}${argString}`;
+
+  // task 显示名：args 非空时附加 (KEY=VAL)，方便在任务面板里区分
+  const taskName = args.length > 0
+    ? `Make: ${targetName} (${args.join(' ')})`
+    : `Make: ${targetName}`;
+
   const task = new vscode.Task(
     definition,
     vscode.TaskScope.Workspace,
-    `Make: ${targetName}`,
+    taskName,
     source,
-    new vscode.ShellExecution(`make -f ${fileName} ${targetName}`, { cwd: makefileDir })
+    new vscode.ShellExecution(command, { cwd: makefileDir })
   );
 
   task.detail = makefilePath;

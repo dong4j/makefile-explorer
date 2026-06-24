@@ -26,6 +26,8 @@ import { exec } from 'child_process';
 import { MakefileTreeProvider } from './providers/MakefileTreeProvider';
 import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './providers/MakefileTaskProvider';
 import { TaskHistoryService } from './services/TaskHistoryService';
+import { ArgsPromptService } from './services/ArgsPromptService';
+import { parseArgs } from './services/argsParser';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
@@ -80,6 +82,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // ---- TaskHistoryService：持久化最近一次跑的 target（PR4 Run Last Task）----
   // 用 context.globalState 跨 workspace 共享；切换项目后 last task 各自独立
   const taskHistory = new TaskHistoryService(context);
+
+  // ---- ArgsPromptService：右键「Run with Args...」时弹输入框收集 KEY=VALUE 参数（PR5 Run with Args）----
+  const argsPrompt = new ArgsPromptService();
 
   const treeView = vscode.window.createTreeView('makefileExplorer', {
     treeDataProvider: provider,
@@ -139,12 +144,21 @@ export function activate(context: vscode.ExtensionContext): void {
    * 通过 VS Code Task API 执行 make target
    *
    * 使用自定义类型 makefile-explorer，需已注册 TaskProvider（见 MakefileTaskProvider.ts）
+   *
+   * @param targetName target 名
+   * @param filePath Makefile 绝对路径
+   * @param args 可选 make 额外参数（PR5 Run with Args 引入）
    */
-  async function executeTarget(targetName: string, filePath: string): Promise<void> {
-    const task = createMakeTask(targetName, filePath);
+  async function executeTarget(
+    targetName: string,
+    filePath: string,
+    args: string[] = []
+  ): Promise<void> {
+    const task = createMakeTask(targetName, filePath, args);
     try {
       await vscode.tasks.executeTask(task);
-      console.log(`[Makefile Explorer] 执行任务: Make: ${targetName} (${filePath})`);
+      const argInfo = args.length ? ` (args: ${args.join(' ')})` : '';
+      console.log(`[Makefile Explorer] 执行任务: Make: ${targetName}${argInfo} (${filePath})`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       vscode.window.showErrorMessage(`执行 Make target 失败: ${message}`);
@@ -198,6 +212,45 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
         executeTarget(info.name, info.filePath);
+      }
+    )
+  );
+
+  /**
+   * 右键菜单「Run with Args...」：弹输入框收集 KEY=VALUE 参数后执行（PR5 Run with Args）
+   *
+   * 与双击的区别：
+   * - 双击 = 直接跑（防误触 + 简单）
+   * - 右键 Run with Args = 弹输入框收集参数后跑（用户主动选择走这个流程）
+   *
+   * 输入格式：
+   * - KEY=VAL 空格分隔（如 VERSION=0.1.0 DEBUG=1）
+   * - 用户按 Esc 取消 → 不执行
+   * - 格式错误 → 弹 error 不执行
+   */
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'makefile-explorer.runWithArgs',
+      async (args: Record<string, unknown> | undefined) => {
+        const info = normalizeArgs(args);
+        if (!info) {
+          vscode.window.showWarningMessage('请从 Make Targets 面板右键使用此功能');
+          return;
+        }
+
+        // 弹输入框；用户 Esc 取消则本次不执行
+        const input = await argsPrompt.prompt(info.name);
+        if (input === undefined) {
+          console.log(`[Makefile Explorer] 用户取消参数输入，跳过执行: ${info.name}`);
+          return;
+        }
+        // 解析逻辑在 argsParser.ts（纯函数，便于单测）；这里 UI 层只做编排
+        const { args: makeArgs, errors } = parseArgs(input);
+        if (errors.length > 0) {
+          vscode.window.showErrorMessage(`参数格式错误: ${errors.join('; ')}`);
+          return;
+        }
+        await executeTarget(info.name, info.filePath, makeArgs);
       }
     )
   );

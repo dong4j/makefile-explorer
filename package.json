@@ -67,6 +67,11 @@
         "icon": "$(history)"
       },
       {
+        "command": "makefile-explorer.runWithArgs",
+        "title": "Run with Args...",
+        "icon": "$(terminal)"
+      },
+      {
         "command": "makefile-explorer.refresh",
         "title": "Refresh Makefile Targets",
         "icon": "$(refresh)"
@@ -101,19 +106,29 @@
       ],
       "view/item/context": [
         {
-          "command": "makefile-explorer.goToDefinition",
+          "command": "makefile-explorer.runWithArgs",
           "when": "viewItem == makefileTarget",
           "group": "inline"
         },
         {
           "command": "makefile-explorer.goToDefinition",
           "when": "viewItem == makefileTarget",
+          "group": "inline@1"
+        },
+        {
+          "command": "makefile-explorer.runWithArgs",
+          "when": "viewItem == makefileTarget",
           "group": "navigation@1"
+        },
+        {
+          "command": "makefile-explorer.goToDefinition",
+          "when": "viewItem == makefileTarget",
+          "group": "navigation@2"
         },
         {
           "command": "makefile-explorer.copyMakeCommand",
           "when": "viewItem == makefileTarget",
-          "group": "navigation@2"
+          "group": "navigation@3"
         }
       ]
     },
