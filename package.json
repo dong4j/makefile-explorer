@@ -119,12 +119,15 @@
     "compile:tsc": "tsc -p ./",
     "watch": "node esbuild.config.mjs --watch",
     "lint": "eslint src --ext ts",
+    "test": "mocha",
     "package": "vsce package"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.x",
-    "typescript": "^5.4.0",
-    "esbuild": "^0.20.0"
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "esbuild-runner": "^2.2.2",
+    "mocha": "^11.7.6",
+    "typescript": "^5.4.0"
   }
 }

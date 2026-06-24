@@ -1,0 +1,8 @@
+{
+  "extension": ["ts"],
+  "spec": "src/test/**/*.test.ts",
+  "require": "esbuild-runner/register",
+  "reporter": "spec",
+  "recursive": false,
+  "timeout": 5000
+}
