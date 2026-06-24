@@ -22,8 +22,8 @@
 
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { MakefileTreeProvider } from './MakefileTreeProvider';
-import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './MakefileTaskProvider';
+import { MakefileTreeProvider } from './providers/MakefileTreeProvider';
+import { createMakeTask, registerMakefileTaskProvider, MAKEFILE_TASK_TYPE } from './providers/MakefileTaskProvider';
 
 /** 双击判定窗口（毫秒） */
 const DOUBLE_CLICK_WINDOW_MS = 500;
