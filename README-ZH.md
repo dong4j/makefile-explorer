@@ -79,33 +79,6 @@ test: ## 运行完整测试套件
 
 完整列表见 [GitHub Issues](https://github.com/dong4j/vscode-makefile-explorer/issues)。
 
-## 更新日志
-
-### 0.6.0
-
-- 右键 "Copy Make Command" — 复制终端可执行命令到剪贴板
-
-### 0.5.0
-
-- 状态栏指示器（执行中 / 完成自动隐藏）
-- Target 依赖展示（展开 target 查看依赖项）
-- 启动时 make 可用性检测
-- 「运行任务」面板按 Makefile 分组
-- 优化终端展示（独立面板、不回显命令、自动聚焦）
-
-### 0.4.0
-
-- Task API 执行（替代原始 `sendText`）
-- 每次执行独立终端，避免命令冲突
-
-### 0.3.0
-
-- 双击执行 target（防误触）
-- 内联图标一键跳转定义
-- GitHub Actions CI + Marketplace 自动发布
-- 中文文档（README-ZH.md）
-- `make release` 自动化发布流程
-
 ---
 
 ## 开发

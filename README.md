@@ -84,33 +84,6 @@ Above-target comments take priority over inline `##` comments.
 
 See the [GitHub issues](https://github.com/dong4j/vscode-makefile-explorer/issues) for the full list.
 
-## Release Notes
-
-### 0.6.0
-
-- Right-click "Copy Make Command" — copies a terminal-ready command to clipboard
-
-### 0.5.0
-
-- Status bar indicator for running/completed Make tasks
-- Target dependency display (expand a target to see deps)
-- Make availability check on startup
-- Tasks grouped by Makefile in command palette
-- Improved terminal presentation (Dedicated panel, no echo, auto-focus)
-
-### 0.4.0
-
-- Task API execution (replaces raw terminal `sendText`)
-- Dedicated terminal per execution to avoid command conflicts
-
-### 0.3.0
-
-- Double-click to execute targets (prevents accidental triggers)
-- Inline icon button for quick jump-to-definition
-- GitHub Actions CI + auto-release to Marketplace
-- Chinese README (`README-ZH.md`)
-- Automated release flow via `make release`
-
 ---
 
 ## Development
